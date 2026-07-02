@@ -1,0 +1,7 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.log
+
+# local working notes — kept on disk, not part of the repo
+NOTES.md
