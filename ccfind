@@ -626,8 +626,8 @@ def browse(n):
 	set_sort("date")
 	me = os.path.realpath(__file__)
 	reload_cmd = f"python3 {me} --search-lines {n} {{q}}"
-	scheme = ("fg+:bright-white,bg+:-1,hl:cyan,hl+:bright-cyan,"
-		"prompt:green,pointer:magenta,marker:magenta,info:dim,header:dim,"
+	scheme = ("fg+:bright-white:bold,bg+:238,hl:cyan,hl+:bright-yellow,"
+		"prompt:green,pointer:bright-magenta,marker:bright-magenta,info:dim,header:dim,"
 		"border:240,separator:240,preview-border:240,scrollbar:240,"
 		"preview-scrollbar:240,gutter:-1,label:cyan,preview-label:cyan,query:bright-white")
 	res = subprocess.run([
