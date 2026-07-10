@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff format --check src tests
+      - run: uv run ruff check src tests
+      - run: uv run pyright
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Oldest supported and newest — the bounds of requires-python, where stdlib
+        # behavior differences surface, not the middle versions.
+        python-version: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --locked
+      - run: uv run pytest
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv build
+      # Run the CLI from the INSTALLED wheel, not the source tree — this is the only
+      # check that the wheel actually ships the console entry point and the `python -m
+      # ccfind` module hook the fzf browser re-invokes (a packaging mistake there fails
+      # silently in dev, only surfacing post-install).
+      - run: uvx --from dist/*.whl ccfind --help
