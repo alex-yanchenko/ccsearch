@@ -1,0 +1,81 @@
+[project]
+name = "ccfind"
+version = "0.1.0"
+description = "Search your Claude Code sessions by content"
+readme = "README.md"
+license = "PolyForm-Noncommercial-1.0.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Alex Yanchenko", email = "a.inbox.2026@gmail.com" }]
+requires-python = ">=3.9"
+# Zero Python runtime dependencies by design. ripgrep (`rg`) and fzf are external
+# binaries the tool shells out to — declared as Homebrew formula dependencies, not here.
+dependencies = []
+keywords = ["claude", "claude-code", "search", "cli", "transcripts", "fzf"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Repository = "https://github.com/alex-yanchenko/ccfind"
+Issues = "https://github.com/alex-yanchenko/ccfind/issues"
+
+[project.scripts]
+ccfind = "ccfind.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1",
+    "pytest>=8.0",
+    "ruff>=0.14",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py39"
+
+[tool.ruff.lint]
+# ccfind is a single-module CLI written in a deliberately terse idiom (single-letter
+# locals, os.path throughout, unused fzf-callback args). N/ARG/PTH/RET would fire
+# pervasively without improving it; this set keeps the checks that catch real defects.
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # bugbear
+    "C4",  # comprehensions
+    "SIM", # simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E731",   # assigned lambdas — the BOLD/DIM/… color helpers are a deliberate compact idiom
+    "SIM115", # one-shot mode/sort reads in a short-lived process; a context manager buys nothing
+    "RUF001", # ambiguous unicode in strings — ×, ·, ⟨⟩ etc. are intentional display glyphs
+    "RUF002", # ...in docstrings
+    "RUF003", # ...in comments
+]
+
+[tool.pyright]
+include = ["src", "tests"]
+# basic (not strict): the CLI predates type hints and annotating 30 helpers wholesale
+# is out of scope for the packaging change.
+typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

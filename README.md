@@ -12,16 +12,19 @@ one-key resume.
 
 ## Quick start
 
-Prerequisites: **python3** (3.7+), **ripgrep** (`rg`), and **fzf** (only for the
+Prerequisites: **python3** (3.9+), **ripgrep** (`rg`), and **fzf** (only for the
 interactive browser — `ccfind <keyword>` works without it).
-`brew install ripgrep fzf` on macOS, or your package manager on Linux.
 
 ```bash
-./install.sh
+# macOS / Linux — Homebrew pulls in ripgrep + fzf for you
+brew install alex-yanchenko/tap/ccfind
+
+# or, if you use uv / pipx (install ripgrep + fzf separately)
+uvx ccfind            # run without installing
+pipx install ccfind   # install for repeated use
 ```
 
-That copies `ccfind` to `~/.local/bin` and checks the dependencies. Make sure
-`~/.local/bin` is on your `PATH`, then run:
+Then run:
 
 ```bash
 ccfind
@@ -90,7 +93,7 @@ can be deleted at any time with `rm -rf ~/.cache/ccfind` (your transcripts are u
 
 | Symptom | Fix |
 |---|---|
-| `command not found: ccfind` | Not on `PATH` or not executable — re-run `./install.sh`; confirm `~/.local/bin` is on `PATH`. |
+| `command not found: ccfind` | Brew install: run `brew link ccfind`. pipx install: confirm `~/.local/bin` is on `PATH` (`pipx ensurepath`). |
 | No results / browser falls back to a plain list | Install `ripgrep` and `fzf`. |
 | "No sessions" | No Claude Code sessions yet, or config relocated — set `CLAUDE_CONFIG_DIR` to the dir containing `projects/`. |
 | Stale or odd results | Delete the cache and let it rebuild: `rm -rf ~/.cache/ccfind`. |
