@@ -73,7 +73,7 @@ jobs:
             git push
           fi
 
-      # The rest runs ONLY when a release PR was just merged (a draft release now exists).
+      # The rest runs ONLY when a release PR was just merged (a release now exists).
       - uses: actions/checkout@v4
         if: ${{ steps.release.outputs.release_created }}
       - uses: astral-sh/setup-uv@v7
