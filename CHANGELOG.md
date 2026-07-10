@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.2...v0.2.3) (2026-07-10)
+
+
+### Bug Fixes
+
+* strip terminal control characters from transcript text before display ([#10](https://github.com/alex-yanchenko/ccsearch/issues/10)) ([7d37343](https://github.com/alex-yanchenko/ccsearch/commit/7d37343eb19ccc064f934d33828791cba4bd6cdc))
+
 ## [0.2.2](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.1...v0.2.2) (2026-07-10)
 
 
