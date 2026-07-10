@@ -409,7 +409,17 @@ def find(keyword):
             snip = clean_snip(s[0]) if s else ""
         except Exception:
             pass
-        rows.append((n, os.path.getmtime(f), proj_of(f), sid, clean_label(title or first or "(empty)"), snip))
+        rows.append(
+            (
+                n,
+                os.path.getmtime(f),
+                proj_of(f),
+                sid,
+                clean_label(title or first or "(empty)"),
+                snip,
+                session_cwd(f),
+            )
+        )
     # rank by match count, then recency
     rows.sort(key=lambda r: (r[0], r[1]), reverse=True)
 
@@ -418,7 +428,7 @@ def find(keyword):
         print(f"\n  {DIM('no sessions mention')} {BOLD(shown)}\n")
         return
     print(f"\n  {BOLD(str(len(rows)))} session(s) mention {YELLOW(shown)}\n")
-    for i, (n, mtime, proj, sid, label, snip) in enumerate(rows, 1):
+    for i, (n, mtime, proj, sid, label, snip, cwd) in enumerate(rows, 1):
         hits = f"{n} match{'es' if n != 1 else ''}"
         print(f"  {CYAN(f'{i:>2}')}  {BOLD(label)}")
         print(
@@ -426,7 +436,7 @@ def find(keyword):
         )
         if snip:
             print(f"      {DIM('…' + highlight(snip, keyword.split()) + '…')}")
-        print(f"      {GREEN('claude --resume ' + sid)}")
+        print(f"      {GREEN(resume_cmd(sid, cwd))}")
         print()
 
 
@@ -460,6 +470,29 @@ def read_tail(path, nbytes=262144):
         fh.seek(max(0, size - nbytes))
         data = fh.read().decode(errors="ignore")
     return data if size <= nbytes else data.split("\n", 1)[-1]
+
+
+def session_cwd(path):
+    """The directory `claude --resume` must run from — Claude Code scopes a session to the
+    working dir it was launched in. Read the launch cwd from the transcript (each entry
+    records its `cwd`; the first one is the launch dir). Fall back to decoding the encoded
+    project-dir name (lossy on dir names containing '-') when no entry carries a cwd."""
+    for ln in read_head(path).splitlines():
+        try:
+            cwd = json.loads(ln).get("cwd")
+        except Exception:
+            continue
+        if cwd:
+            return cwd
+    name = os.path.basename(os.path.dirname(path))
+    return "/" + name.lstrip("-").replace("-", "/") if name.startswith("-") else None
+
+
+def resume_cmd(sid, cwd):
+    """Shell command to resume a session: cd into its launch dir first, because
+    `claude --resume` only finds sessions belonging to the current directory's project."""
+    base = f"claude --resume {sid}"
+    return f"cd {shlex.quote(cwd)} && {base}" if cwd else base
 
 
 def meta_fast(path):
@@ -731,9 +764,15 @@ def browse(n):
     )
     if res.returncode != 0 or not res.stdout.strip():
         return
-    sid = res.stdout.split("\t")[1]
-    print(GREEN(f"claude --resume {sid}"))
+    fields = res.stdout.strip("\n").split("\t")  # fzf_line packs: display \t sid \t transcript-path
+    sid = fields[1]
+    cwd = session_cwd(fields[2]) if len(fields) > 2 else None
+    print(GREEN(resume_cmd(sid, cwd)))
     try:
+        # Claude Code scopes --resume to the current project dir, so enter the session's
+        # launch dir first; otherwise resuming a session from another folder fails.
+        if cwd and os.path.isdir(cwd):
+            os.chdir(cwd)
         os.execvp("claude", ["claude", "--resume", sid])
     except OSError as e:
         print(DIM(f"couldn't launch claude ({e}) — run the command above manually."), file=sys.stderr)

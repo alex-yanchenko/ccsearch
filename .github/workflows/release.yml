@@ -2,10 +2,10 @@ name: Release
 
 # release-please maintains a "chore(main): release X.Y.Z" PR off main: it bumps the
 # version in pyproject.toml and writes the CHANGELOG from Conventional Commit messages.
-# Merging that PR creates a DRAFT GitHub release; this same job then builds the sdist +
-# wheel and attaches them with provenance attestation, so the draft is ready to ship.
-# Publishing the draft (a manual click) creates the git tag and triggers publish.yml,
-# which pushes to PyPI via trusted publishing.
+# Merging that PR creates a PUBLISHED (non-draft) GitHub release + tag, which fires the
+# `release: published` event that triggers publish.yml (PyPI via trusted publishing). This
+# same job also builds the sdist + wheel and attaches them with provenance attestation.
+# Net: merging the release PR is the only manual step — PyPI publish happens automatically.
 on:
   push:
     branches: [main]
@@ -80,25 +80,17 @@ jobs:
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: dist/*
-      - name: Attach sdist + wheel to the draft release
+      - name: Attach sdist + wheel to the release
         if: ${{ steps.release.outputs.release_created }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ steps.release.outputs.tag_name }}" dist/* --clobber
-      # Keep exactly one unpublished draft. Merging successive release PRs without
-      # publishing the prior draft would otherwise leave a stack of stale drafts.
-      # Drafts carry no git tag, so this never deletes a tag or a published release.
-      - name: Prune stale draft releases (keep only the new one)
+      # Best-effort instant Homebrew bump: nudge the tap to re-read this release now (after
+      # the wheel is attached above). 403s harmlessly if the release app isn't installed on
+      # the tap — the tap's daily cron is the backstop — so this never fails the release.
+      - name: Nudge the Homebrew tap to bump the formula
         if: ${{ steps.release.outputs.release_created }}
+        continue-on-error: true
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          new_tag="${{ steps.release.outputs.tag_name }}"
-          gh release list --repo "${{ github.repository }}" --limit 100 --json tagName,isDraft \
-            --jq '.[] | select(.isDraft) | .tagName' \
-          | while read -r tag; do
-              if [ "$tag" != "$new_tag" ]; then
-                echo "Deleting stale draft $tag"
-                gh release delete "$tag" --repo "${{ github.repository }}" --yes
-              fi
-            done
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: gh api --method POST repos/alex-yanchenko/homebrew-tap/dispatches -f event_type=tool-released
