@@ -34,11 +34,18 @@ jobs:
       # Mint a short-lived installation token from the dedicated release GitHub App so
       # PR creation is scoped to THIS workflow's token. The token also makes the release
       # PR trigger CI (PRs opened by the default GITHUB_TOKEN don't).
+      # repositories must list BOTH repos: ccsearch (release-please + assets) and
+      # homebrew-tap (the formula-bump push below). Without homebrew-tap here the token is
+      # scoped to ccsearch only and the tap push 403s.
       - uses: actions/create-github-app-token@v1
         id: app-token
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            ccsearch
+            homebrew-tap
       - uses: googleapis/release-please-action@v4
         id: release
         with:
