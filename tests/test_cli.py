@@ -56,6 +56,21 @@ def test_clean_snip_unescapes_collapses_and_trims():
     assert cli.clean_snip("  a\\tb   c  ") == "a b c"
 
 
+def test_sanitize_strips_terminal_control_chars_keeps_printables():
+    assert cli._sanitize("x\x00\x1b\x07\x7f\x9fy") == "xy"
+    assert cli._sanitize("plain café 日本 ✓") == "plain café 日本 ✓"
+
+
+def test_clean_label_strips_escape_sequences():
+    # ESC (\x1b) is removed so the sequence can't reach the terminal; the harmless residue stays.
+    assert cli.clean_label("ti\x1b[2Jtle") == "ti[2Jtle"
+    assert cli.clean_label("normal title") == "normal title"
+
+
+def test_clean_snip_strips_control_chars():
+    assert cli.clean_snip("a\x1bb\x07c") == "abc"
+
+
 def test_int_arg_parses_and_falls_back():
     assert cli._int_arg(["--index"], 15) == 15
     assert cli._int_arg(["--index", "5"], 15) == 5

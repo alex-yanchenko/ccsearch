@@ -86,10 +86,23 @@ def local_stamp(ts):
 
 CHANNEL = re.compile(r'<channel\s+source="([^"]+)"(?:\s+event_type="([^"]+)")?')
 COMMAND = re.compile(r"<command-name>\s*(\S+)")
+# C0 (incl. ESC \x1b), DEL, and C1 control chars. Whitespace collapse elsewhere already
+# removes \t\n\r, so stripping the whole range here loses nothing legitimate.
+_CONTROL = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _sanitize(text):
+    """Strip terminal control characters from untrusted transcript text before it is printed
+    or handed to the fzf preview. Transcript content (tool output, pasted or synced text) can
+    contain escape sequences; without this, browsing such a session could let it clear/spoof
+    the terminal or trigger OSC actions. ccsearch's own color codes wrap already-sanitized
+    text, so they are unaffected."""
+    return _CONTROL.sub("", text)
 
 
 def clean_label(label):
     """Turn channel/command transcript blobs into a short readable title."""
+    label = _sanitize(label)
     m = CHANNEL.search(label)
     if m:
         src, evt = m.group(1), m.group(2)
@@ -104,7 +117,7 @@ def clean_snip(snip):
     """De-noise a raw JSONL snippet: unescape, collapse whitespace, trim quotes."""
     snip = snip.replace('\\"', '"').replace("\\n", " ").replace("\\t", " ")
     snip = re.sub(r"\s+", " ", snip).strip().strip(',"')
-    return snip
+    return _sanitize(snip)
 
 
 def proj_of(path):
@@ -554,7 +567,7 @@ TAG_WIDTH = 17
 
 
 def render_msg(role, ts, text, width, limit=None, terms=None):
-    body = " ".join(text.split())
+    body = _sanitize(" ".join(text.split()))
     if limit and len(body) > limit:
         body = body[:limit].rstrip() + " …"
     _wrap(f"{DIM(local_stamp(ts))} {TAGS[role]}", TAG_WIDTH, body, width, terms)
