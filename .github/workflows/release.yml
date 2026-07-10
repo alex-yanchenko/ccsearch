@@ -11,9 +11,8 @@ on:
     branches: [main]
 
 # Serialize releases: only one run at a time. A second push while a run is mid-flight
-# queues behind it (cancel-in-progress: false) rather than racing on the release PR /
-# draft. We do NOT cancel the in-progress run — killing it mid-build could leave a
-# half-populated draft.
+# queues behind it (cancel-in-progress: false). We do NOT cancel the in-progress run —
+# killing it mid-build could leave a release half-built (assets missing or formula unpushed).
 concurrency:
   group: release
   cancel-in-progress: false
@@ -34,9 +33,8 @@ jobs:
       # Mint a short-lived installation token from the dedicated release GitHub App so
       # PR creation is scoped to THIS workflow's token. The token also makes the release
       # PR trigger CI (PRs opened by the default GITHUB_TOKEN don't).
-      # repositories must list BOTH repos: ccsearch (release-please + assets) and
-      # homebrew-tap (the formula-bump push below). Without homebrew-tap here the token is
-      # scoped to ccsearch only and the tap push 403s.
+      # The token reaches only the repos listed under `repositories`: ccsearch for
+      # release-please + assets, homebrew-tap for the formula-bump push below.
       - uses: actions/create-github-app-token@v1
         id: app-token
         with:
@@ -75,7 +73,7 @@ jobs:
             git push
           fi
 
-      # The rest runs ONLY when a release PR was just merged (a draft release now exists).
+      # The rest runs ONLY when a release PR was just merged (a release now exists).
       - uses: actions/checkout@v4
         if: ${{ steps.release.outputs.release_created }}
       - uses: astral-sh/setup-uv@v7
@@ -92,11 +90,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ steps.release.outputs.tag_name }}" dist/* --clobber
-      # Bump the Homebrew formula in-line, right after the wheel is attached — synchronous,
-      # so it happens the instant this release publishes and FAILS this job (visibly) if it
-      # can't, rather than drifting until a cron. Uses the release app's token (contents:write
-      # on the tap). The formula tracks the prebuilt py3-none-any wheel; sha comes from the
-      # release asset's API digest, so nothing is downloaded.
+      # Bump the Homebrew formula right after the wheel is attached. This step is what
+      # updates brew, so let it fail the release if the push fails. Uses the release app's
+      # token (contents:write on the tap). The formula tracks the prebuilt py3-none-any
+      # wheel; its sha comes from the release asset's API digest, so nothing is downloaded.
       - name: Bump the Homebrew formula
         if: ${{ steps.release.outputs.release_created }}
         env:
