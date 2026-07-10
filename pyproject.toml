@@ -1,6 +1,6 @@
 [project]
 name = "ccsearch"
-version = "0.2.0"
+version = "0.2.1"
 description = "Search your Claude Code sessions by content"
 readme = "README.md"
 license = "PolyForm-Noncommercial-1.0.0"

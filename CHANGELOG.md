@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.0...v0.2.1) (2026-07-10)
+
+
+### Bug Fixes
+
+* resume sessions from any folder + fully automate releases ([#5](https://github.com/alex-yanchenko/ccsearch/issues/5)) ([4928998](https://github.com/alex-yanchenko/ccsearch/commit/49289984c802e548315020cc7db03d31b5b4d58c))
+
 ## [0.2.0](https://github.com/alex-yanchenko/ccsearch/compare/v0.1.0...v0.2.0) (2026-07-10)
 
 
