@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.1...v0.2.2) (2026-07-10)
+
+
+### Documentation
+
+* simplify the install and usage sections ([#7](https://github.com/alex-yanchenko/ccsearch/issues/7)) ([5752b62](https://github.com/alex-yanchenko/ccsearch/commit/5752b62b7f4eaa49f3f807be513c6beab522bf09))
+
 ## [0.2.1](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.0...v0.2.1) (2026-07-10)
 
 
