@@ -68,3 +68,27 @@ def test_main_help_prints_usage_and_returns_zero(capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert "search your Claude Code sessions" in out
+
+
+def test_session_cwd_reads_launch_cwd_from_transcript(tmp_path):
+    proj = tmp_path / "-Users-me-code-thing"
+    proj.mkdir()
+    transcript = proj / "sid.jsonl"
+    transcript.write_text(
+        "\n".join(
+            [
+                json.dumps({"type": "summary", "summary": "no cwd here"}),
+                json.dumps({"type": "user", "cwd": "/Users/me/code/thing", "message": {"content": "hi"}}),
+                json.dumps({"type": "assistant", "cwd": "/Users/me/elsewhere", "message": {"content": []}}),
+            ]
+        )
+    )
+    assert cli.session_cwd(str(transcript)) == "/Users/me/code/thing"
+
+
+def test_session_cwd_falls_back_to_decoded_project_dir(tmp_path):
+    proj = tmp_path / "-Users-me-code-thing"
+    proj.mkdir()
+    transcript = proj / "sid.jsonl"
+    transcript.write_text(json.dumps({"type": "summary", "summary": "no cwd anywhere"}))
+    assert cli.session_cwd(str(transcript)) == "/Users/me/code/thing"
