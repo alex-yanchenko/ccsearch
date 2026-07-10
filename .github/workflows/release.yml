@@ -85,12 +85,33 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ steps.release.outputs.tag_name }}" dist/* --clobber
-      # Best-effort instant Homebrew bump: nudge the tap to re-read this release now (after
-      # the wheel is attached above). 403s harmlessly if the release app isn't installed on
-      # the tap — the tap's daily cron is the backstop — so this never fails the release.
-      - name: Nudge the Homebrew tap to bump the formula
+      # Bump the Homebrew formula in-line, right after the wheel is attached — synchronous,
+      # so it happens the instant this release publishes and FAILS this job (visibly) if it
+      # can't, rather than drifting until a cron. Uses the release app's token (contents:write
+      # on the tap). The formula tracks the prebuilt py3-none-any wheel; sha comes from the
+      # release asset's API digest, so nothing is downloaded.
+      - name: Bump the Homebrew formula
         if: ${{ steps.release.outputs.release_created }}
-        continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: gh api --method POST repos/alex-yanchenko/homebrew-tap/dispatches -f event_type=tool-released
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.release.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          ver="${TAG#v}"
+          asset="ccsearch-${ver}-py3-none-any.whl"
+          sha=$(gh api "repos/${REPO}/releases/tags/${TAG}" \
+            --jq ".assets[] | select(.name==\"${asset}\") | .digest" | sed 's/^sha256://')
+          test -n "$sha"
+          url="https://github.com/${REPO}/releases/download/${TAG}/${asset}"
+          tmp=$(mktemp -d)
+          git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/alex-yanchenko/homebrew-tap" "$tmp"
+          cd "$tmp"
+          sed -i -E "s|^  url \".*\"|  url \"${url}\"|" Formula/ccsearch.rb
+          sed -i -E "s|^  sha256 \"[0-9a-f]{64}\"|  sha256 \"${sha}\"|" Formula/ccsearch.rb
+          git config user.name "alex-release-bot[bot]"
+          git config user.email "alex-release-bot[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git commit -am "chore: ccsearch ${ver}"
+            git push
+          fi
