@@ -3,7 +3,7 @@
   "packages": {
     ".": {
       "release-type": "python",
-      "package-name": "ccfind",
+      "package-name": "ccsearch",
       "draft": true,
       "include-component-in-tag": false
     }

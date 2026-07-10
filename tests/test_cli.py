@@ -1,6 +1,6 @@
 import json
 
-from ccfind import cli
+from ccsearch import cli
 
 
 def test_iter_entries_extracts_conversation_only():

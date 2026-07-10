@@ -1,5 +1,5 @@
 [project]
-name = "ccfind"
+name = "ccsearch"
 version = "0.1.0"
 description = "Search your Claude Code sessions by content"
 readme = "README.md"
@@ -25,11 +25,11 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/alex-yanchenko/ccfind"
-Issues = "https://github.com/alex-yanchenko/ccfind/issues"
+Repository = "https://github.com/alex-yanchenko/ccsearch"
+Issues = "https://github.com/alex-yanchenko/ccsearch/issues"
 
 [project.scripts]
-ccfind = "ccfind.cli:main"
+ccsearch = "ccsearch.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.11,<0.12"]
@@ -47,7 +47,7 @@ line-length = 110
 target-version = "py39"
 
 [tool.ruff.lint]
-# ccfind is a single-module CLI written in a deliberately terse idiom (single-letter
+# ccsearch is a single-module CLI written in a deliberately terse idiom (single-letter
 # locals, os.path throughout, unused fzf-callback args). N/ARG/PTH/RET would fire
 # pervasively without improving it; this set keeps the checks that catch real defects.
 select = [

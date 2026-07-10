@@ -1,11 +1,11 @@
-# ccfind
+# ccsearch
 
-`ccfind` searches your **Claude Code sessions by content** — so you can find which
+`ccsearch` searches your **Claude Code sessions by content** — so you can find which
 of your many long-running chats discussed a ticket, PR, file, or idea, even weeks
 later and even after the conversation drifted across topics.
 
 Claude Code stores every session as a transcript under `~/.claude/projects/`.
-`ccfind` indexes the actual conversation (your messages + the AI's responses, plus
+`ccsearch` indexes the actual conversation (your messages + the AI's responses, plus
 each session's title) — never the JSON metadata (uuids, timestamps, token counts,
 tool input/output) — and gives you a fast fuzzy browser with a live preview and
 one-key resume.
@@ -13,21 +13,21 @@ one-key resume.
 ## Quick start
 
 Prerequisites: **python3** (3.9+), **ripgrep** (`rg`), and **fzf** (only for the
-interactive browser — `ccfind <keyword>` works without it).
+interactive browser — `ccsearch <keyword>` works without it).
 
 ```bash
 # macOS / Linux — Homebrew pulls in ripgrep + fzf for you
-brew install alex-yanchenko/tap/ccfind
+brew install alex-yanchenko/tap/ccsearch
 
 # or, if you use uv / pipx (install ripgrep + fzf separately)
-uvx ccfind            # run without installing
-pipx install ccfind   # install for repeated use
+uvx ccsearch            # run without installing
+pipx install ccsearch   # install for repeated use
 ```
 
 Then run:
 
 ```bash
-ccfind
+ccsearch
 ```
 
 The first run builds a small text cache of your sessions (a few seconds); after
@@ -36,9 +36,9 @@ that it only re-indexes sessions that changed.
 ## Usage
 
 ```bash
-ccfind                  # interactive browser — type to search, Enter resumes the session
-ccfind <keyword>        # list sessions mentioning <keyword>, ranked
-ccfind --index [N]      # fingerprint the N most-recent sessions (title + tickets touched)
+ccsearch                  # interactive browser — type to search, Enter resumes the session
+ccsearch <keyword>        # list sessions mentioning <keyword>, ranked
+ccsearch --index [N]      # fingerprint the N most-recent sessions (title + tickets touched)
 ```
 
 In the browser:
@@ -65,15 +65,15 @@ same in all three.
 
 ## How it works
 
-Each session is indexed into a small structured cache (`~/.cache/ccfind/<id>.txt`,
+Each session is indexed into a small structured cache (`~/.cache/ccsearch/<id>.txt`,
 one message per line, plus a parallel `.meta` with role + timestamp). Both the
 result ranking and the preview read this cache, so search is fast and accurate even
 on very large transcripts. The cache excludes tool I/O, metadata, and
 `<channel>`/`<command>` automation lines, so you only ever match real conversation.
 
-The cache stores your conversation text in **plaintext** under `~/.cache/ccfind/`.
+The cache stores your conversation text in **plaintext** under `~/.cache/ccsearch/`.
 It's derived from your existing Claude Code transcripts, makes no network calls, and
-can be deleted at any time with `rm -rf ~/.cache/ccfind` (your transcripts are untouched).
+can be deleted at any time with `rm -rf ~/.cache/ccsearch` (your transcripts are untouched).
 
 > AI *thinking* text is not searchable — Claude Code persists only a signature for
 > thinking blocks, not the text.
@@ -93,11 +93,11 @@ can be deleted at any time with `rm -rf ~/.cache/ccfind` (your transcripts are u
 
 | Symptom | Fix |
 |---|---|
-| `command not found: ccfind` | Brew install: run `brew link ccfind`. pipx install: confirm `~/.local/bin` is on `PATH` (`pipx ensurepath`). |
+| `command not found: ccsearch` | Brew install: run `brew link ccsearch`. pipx install: confirm `~/.local/bin` is on `PATH` (`pipx ensurepath`). |
 | No results / browser falls back to a plain list | Install `ripgrep` and `fzf`. |
 | "No sessions" | No Claude Code sessions yet, or config relocated — set `CLAUDE_CONFIG_DIR` to the dir containing `projects/`. |
-| Stale or odd results | Delete the cache and let it rebuild: `rm -rf ~/.cache/ccfind`. |
-| Colors look wrong | Run `NO_COLOR=1 ccfind`, or use a 256-color terminal. |
+| Stale or odd results | Delete the cache and let it rebuild: `rm -rf ~/.cache/ccsearch`. |
+| Colors look wrong | Run `NO_COLOR=1 ccsearch`, or use a 256-color terminal. |
 
 ## License
 

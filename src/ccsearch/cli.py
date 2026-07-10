@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ccfind — search your Claude Code sessions by CONTENT, not by name.
+"""ccsearch — search your Claude Code sessions by CONTENT, not by name.
 
 Claude Code stores every session as a transcript under ~/.claude/projects/. This greps
 the actual conversation (your messages + AI responses) — never the JSON metadata
@@ -12,14 +12,14 @@ Requirements:
   • fzf                — brew install fzf        /   apt install fzf   (only for the browser)
 
 Install:
-  • brew install alex-yanchenko/tap/ccfind   (ripgrep + fzf come as dependencies)
-  • or: uvx ccfind   /   pipx install ccfind   /   pip install ccfind
-  Then run `ccfind` — the first run builds a text cache of your sessions (one-time, a few seconds).
+  • brew install alex-yanchenko/tap/ccsearch   (ripgrep + fzf come as dependencies)
+  • or: uvx ccsearch   /   pipx install ccsearch   /   pip install ccsearch
+  Then run `ccsearch` — the first run builds a text cache of your sessions (one-time, a few seconds).
 
 Usage:
-  ccfind                     # interactive fzf browser: type to search bodies, enter resumes
-  ccfind <keyword>           # which sessions mention <keyword>, ranked by match count
-  ccfind --index [N]         # fingerprint the N most-recent sessions (title + tickets touched)
+  ccsearch                     # interactive fzf browser: type to search bodies, enter resumes
+  ccsearch <keyword>           # which sessions mention <keyword>, ranked by match count
+  ccsearch --index [N]         # fingerprint the N most-recent sessions (title + tickets touched)
 
 Env:
   CC_JIRA_PREFIXES="ABC|XYZ" # ticket-key prefixes for the fingerprint (default: any [A-Z]{2,}-123)
@@ -123,7 +123,7 @@ def is_session(path):
 # tool I/O and other metadata. Instead we extract the real conversation
 # (your messages + AI text + AI thinking) into a per-session text cache and
 # search that. Rebuilt only when a session's transcript changes.
-CACHE = os.path.expanduser("~/.cache/ccfind")
+CACHE = os.path.expanduser("~/.cache/ccsearch")
 MODE_FILE = os.path.join(CACHE, ".mode")
 # Search modes (cycled with ^t in the browser):
 #   session — every space-separated term appears somewhere in the session (AND)
@@ -279,7 +279,7 @@ def refresh_cache(verbose=False):
         or os.path.getmtime(text_cache(sid)) < os.path.getmtime(f)
     ]
     if stale and verbose:
-        print(DIM(f"ccfind: indexing {len(stale)} session(s)…"), file=sys.stderr)
+        print(DIM(f"ccsearch: indexing {len(stale)} session(s)…"), file=sys.stderr)
     for sid, f in stale:
         build_cache(f, sid)
     return srcs
@@ -669,10 +669,10 @@ def browse(n):
         return
     set_mode("message")  # each launch starts in one-message mode, sorted by date
     set_sort("date")
-    # fzf re-invokes ccfind for its reload/preview/transform binds. Route those back through
-    # the installed package (`python -m ccfind`), not the source file — once installed as a
+    # fzf re-invokes ccsearch for its reload/preview/transform binds. Route those back through
+    # the installed package (`python -m ccsearch`), not the source file — once installed as a
     # wheel the entry point lives in a venv and `python3 <cli.py>` would not resolve imports.
-    me = f"{shlex.quote(sys.executable)} -m ccfind"
+    me = f"{shlex.quote(sys.executable)} -m ccsearch"
     reload_cmd = f"{me} --search-lines {n} {{q}}"
     scheme = (
         "fg+:bright-white:bold,bg+:238,hl:cyan,hl+:bright-yellow,"
@@ -704,7 +704,7 @@ def browse(n):
             "--border",
             "rounded",
             "--border-label",
-            " ccfind ",
+            " ccsearch ",
             "--padding",
             "0,1",
             "--color",
