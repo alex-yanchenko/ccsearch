@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.3...v0.2.4) (2026-07-10)
+
+
+### Documentation
+
+* describe release.yml steps in present tense ([#12](https://github.com/alex-yanchenko/ccsearch/issues/12)) ([3933bf1](https://github.com/alex-yanchenko/ccsearch/commit/3933bf1ac2d4dcc8a97eb7c08adde4392aa7a17e))
+
 ## [0.2.3](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.2...v0.2.3) (2026-07-10)
 
 
