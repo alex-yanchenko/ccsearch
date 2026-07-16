@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.4...v0.2.5) (2026-07-16)
+
+
+### Bug Fixes
+
+* **preview:** guard empty/missing path so an unmatched query doesn't crash the preview ([#14](https://github.com/alex-yanchenko/ccsearch/issues/14)) ([8923d87](https://github.com/alex-yanchenko/ccsearch/commit/8923d87f00cd55268807a60b80f671d8547f51d0))
+
 ## [0.2.4](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.3...v0.2.4) (2026-07-10)
 
 
