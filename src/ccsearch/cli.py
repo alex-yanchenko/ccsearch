@@ -575,6 +575,11 @@ def render_msg(role, ts, text, width, limit=None, terms=None):
 
 
 def preview_session(path, keyword=None):
+    # fzf expands the {3} path field to '' when the query matches nothing yet still
+    # fires the preview on every keystroke — show an empty state instead of opening ''.
+    if not path or not os.path.isfile(path):
+        print(DIM("(no match)"))
+        return
     width = int(os.environ.get("FZF_PREVIEW_COLUMNS", 84))
     title, first, tickets = meta_fast(path)
     print(BOLD(clean_label(title or first or "(empty)")))
