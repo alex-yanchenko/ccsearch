@@ -107,3 +107,22 @@ def test_session_cwd_falls_back_to_decoded_project_dir(tmp_path):
     transcript = proj / "sid.jsonl"
     transcript.write_text(json.dumps({"type": "summary", "summary": "no cwd anywhere"}))
     assert cli.session_cwd(str(transcript)) == "/Users/me/code/thing"
+
+
+def test_preview_session_empty_path_shows_no_match(capsys):
+    # fzf expands the {3} path field to '' when the query matches no session yet still
+    # fires the preview on every keystroke — preview_session must not try to open ''.
+    cli.preview_session("")
+    assert capsys.readouterr().out == "(no match)\n"
+
+
+def test_preview_session_missing_path_shows_no_match(tmp_path, capsys):
+    cli.preview_session(str(tmp_path / "gone.jsonl"))
+    assert capsys.readouterr().out == "(no match)\n"
+
+
+def test_preview_session_directory_path_shows_no_match(tmp_path, capsys):
+    # os.path.isfile (not os.path.exists) is the guard: a directory must not slip
+    # through and reach open(), which would raise IsADirectoryError.
+    cli.preview_session(str(tmp_path))
+    assert capsys.readouterr().out == "(no match)\n"
