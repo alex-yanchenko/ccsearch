@@ -29,7 +29,7 @@ In the browser: **Enter** resumes · **Ctrl-T** search mode (anywhere / one-mess
 
 ![ccsearch "rate limit" listing three sessions, each with its match count, a snippet and the command to resume it](docs/images/search.png)
 
-The sessions in these images are invented; `uv run bash scripts/render-images.sh` regenerates them from `scripts/images/demo-sessions` (needs Google Chrome, tmux, fzf and ripgrep; set `CHROME_PATH` if Chrome is not at its macOS location).
+The sessions in these images are invented. `bash scripts/render-images.sh` regenerates the images from `scripts/images/demo-sessions` with a throwaway cache, never reading your own sessions. It needs uv, Google Chrome, tmux, fzf and ripgrep, and fetches `ansi2html` through `uvx`; set `CHROME_PATH` if Chrome is not at its macOS location.
 
 Zero config — it works out of the box. The first run caches your sessions under
 `~/.cache/ccsearch` (plaintext, no network; `rm -rf` it anytime to reset).

@@ -4,8 +4,9 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 out="$root/docs/images"
 build="$(mktemp -d)"
-session="ccsearch-images-$$"
-trap 'tmux kill-session -t "$session" 2>/dev/null || true; rm -rf "$build"' EXIT
+socket="ccsearch-images-$$"
+tm() { tmux -L "$socket" -f /dev/null "$@"; }
+trap 'tm kill-server 2>/dev/null || true; rm -rf "$build"' EXIT
 chrome="${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 
 [ -x "$chrome" ] || { echo "Google Chrome not found at $chrome; set CHROME_PATH" >&2; exit 1; }
@@ -19,11 +20,11 @@ mkdir -p "$config" "$frames" "$build/home"
 cp -R "$root/scripts/images/demo-sessions/projects" "$config/"
 cp "$root"/scripts/images/frames.{html,css,js} "$frames/"
 
-uv sync --project "$root" --quiet
+uv sync --project "$root" --locked --no-dev --quiet
 ccsearch="$root/.venv/bin/ccsearch"
 demo_env=(env HOME="$build/home" CLAUDE_CONFIG_DIR="$config" CC_PROJ_STRIP="-Users-sam-code-" TERM=xterm-256color)
 
-uv run --project "$root" python -c '
+uv run --project "$root" --no-dev python -c '
 import os, sys, time
 pairs = sys.argv[1:]
 for path, hours in zip(pairs[::2], pairs[1::2]):
@@ -37,13 +38,20 @@ for path, hours in zip(pairs[::2], pairs[1::2]):
   "$config/projects/-Users-sam-code-acme-storefront/7b1e4c92-3d5f-4a08-b6c1-0e9f2a4d8198.jsonl" 170 \
   "$config/projects/-Users-sam-code-acme-billing/e1b70c45-92a6-4f3d-8e19-2a5d7c6b0081.jsonl" 240
 
+start_demo() {
+  local width="$1" height="$2" command
+  shift 2
+  printf -v command '%q ' "${demo_env[@]}" "$ccsearch" "$@"
+  tm new-session -d -s demo -x "$width" -y "$height" "$command; sleep 60"
+}
+
 wait_for_screen() {
   local text="$1" tries=0
-  until tmux capture-pane -t "$session" -p | grep -q "$text"; do
+  until tm capture-pane -t demo -p | grep -q "$text"; do
     tries=$((tries + 1))
-    if [ "$tries" -gt 100 ]; then
+    if [ "$tries" -gt 300 ]; then
       echo "the ccsearch screen never showed '$text':" >&2
-      tmux capture-pane -t "$session" -p >&2
+      tm capture-pane -t demo -p >&2
       exit 1
     fi
     sleep 0.1
@@ -52,27 +60,34 @@ wait_for_screen() {
 
 capture() {
   local name="$1"
-  tmux capture-pane -t "$session" -e -p | uvx --from ansi2html==1.9.5 ansi2html --inline --scheme=dracula >"$frames/$name.html"
-  tmux kill-session -t "$session"
+  tm capture-pane -t demo -e -p | uvx --from ansi2html==1.9.5 ansi2html --inline --scheme=dracula >"$frames/$name.html"
+  tm kill-session -t demo
 }
 
-tmux new-session -d -s "$session" -x 150 -y 30 "${demo_env[*]} $ccsearch"
+start_demo 150 30
 wait_for_screen "▸"
-tmux send-keys -t "$session" -l "rate limit"
+tm send-keys -t demo -l "rate limit"
 wait_for_screen "3/3"
 wait_for_screen "Retry-After"
 capture browser
 
-tmux new-session -d -s "$session" -x 150 -y 22 "${demo_env[*]} $ccsearch 'rate limit'; sleep 30"
+start_demo 150 22 "rate limit"
 wait_for_screen "claude --resume 9d3f6a18"
 capture search
 
+chrome_flags=(--headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1
+  --allow-file-access-from-files --virtual-time-budget=6000)
+
 shoot() {
-  local size="$1" name="$2"
-  if ! "$chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
-    --allow-file-access-from-files --virtual-time-budget=6000 --window-size="$size" \
-    --screenshot="$frames/$name.png" "file://$frames/frames.html#$name" >"$build/chrome.log" 2>&1 ||
-    [ ! -s "$frames/$name.png" ]; then
+  local size="$1" name="$2" page="file://$frames/frames.html#$2"
+  if "$chrome" "${chrome_flags[@]}" --window-size="$size" --dump-dom "$page" 2>"$build/chrome.log" |
+    grep -q 'class="failure"'; then
+    echo "the $name frame failed to render:" >&2
+    "$chrome" "${chrome_flags[@]}" --dump-dom "$page" 2>/dev/null | grep -o '<pre class="failure">[^<]*' >&2
+    exit 1
+  fi
+  if ! "$chrome" "${chrome_flags[@]}" --window-size="$size" --screenshot="$frames/$name.png" "$page" \
+    >"$build/chrome.log" 2>&1 || [ ! -s "$frames/$name.png" ]; then
     echo "Chrome did not write $name.png:" >&2
     cat "$build/chrome.log" >&2
     exit 1
