@@ -1,0 +1,7 @@
+{"type":"ai-title","aiTitle":"Rate-limit the checkout API (SHOP-214)"}
+{"type":"user","timestamp":"2026-11-10T09:12:04Z","message":{"content":"SHOP-214: checkout gets hammered by a bot during drops. Add a rate limit to POST /checkout, per customer, and return 429 with Retry-After."}}
+{"type":"assistant","timestamp":"2026-11-10T09:12:31Z","message":{"content":[{"type":"text","text":"I'll add a token bucket in Redis keyed by customer id: 10 requests per minute, refilled continuously. The middleware sits in front of the checkout router and answers 429 with a Retry-After header computed from the bucket's refill time."}]}}
+{"type":"user","timestamp":"2026-11-10T09:20:47Z","message":{"content":"What happens if Redis is down? I don't want checkout to fail closed."}}
+{"type":"assistant","timestamp":"2026-11-10T09:21:15Z","message":{"content":[{"type":"text","text":"It fails open: if the Redis call times out after 50 ms the request goes through and we log a rate_limit_unavailable metric. Added a test that stops the Redis container and asserts checkout still returns 200."}]}}
+{"type":"user","timestamp":"2026-11-10T09:34:02Z","message":{"content":"Nice. Add the limit to the load test too so we see the 429s in Grafana."}}
+{"type":"assistant","timestamp":"2026-11-10T09:34:40Z","message":{"content":[{"type":"text","text":"Updated k6/checkout.js to ramp past the limit and added a panel for 429 responses per minute. PR is up: acme/storefront#1182."}]}}
