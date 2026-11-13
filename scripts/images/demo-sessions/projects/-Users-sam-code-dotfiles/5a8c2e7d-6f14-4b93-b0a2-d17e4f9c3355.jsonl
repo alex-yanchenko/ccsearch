@@ -1,0 +1,5 @@
+{"type":"ai-title","aiTitle":"Speed up zsh startup"}
+{"type":"user","timestamp":"2026-11-11T20:44:10Z","message":{"content":"My shell takes 1.8 seconds to start. Profile it."}}
+{"type":"assistant","timestamp":"2026-11-11T20:45:31Z","message":{"content":[{"type":"text","text":"zprof shows nvm init at 1.2 s and compinit at 0.3 s. Lazy-loading nvm and caching the completion dump brings startup to 140 ms."}]}}
+{"type":"user","timestamp":"2026-11-11T20:52:02Z","message":{"content":"Keep the cache fresh when I add plugins."}}
+{"type":"assistant","timestamp":"2026-11-11T20:52:40Z","message":{"content":[{"type":"text","text":"compinit now rebuilds the dump only when it is older than a day or the plugin list changed."}]}}

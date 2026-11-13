@@ -1,0 +1,5 @@
+{"type":"ai-title","aiTitle":"Move invoices to Postgres 17 (BILL-81)"}
+{"type":"user","timestamp":"2026-11-03T10:15:00Z","message":{"content":"BILL-81: plan the invoices table upgrade to Postgres 17 with no downtime."}}
+{"type":"assistant","timestamp":"2026-11-03T10:17:22Z","message":{"content":[{"type":"text","text":"Logical replication from 15 to 17, then a cutover: stop writes for a few seconds, wait for lag to hit zero, flip the connection string. The invoice_lines index rebuild is the slow part, so it runs on the replica before cutover."}]}}
+{"type":"user","timestamp":"2026-11-03T10:31:45Z","message":{"content":"Write the runbook."}}
+{"type":"assistant","timestamp":"2026-11-03T10:36:02Z","message":{"content":[{"type":"text","text":"Runbook is in docs/runbooks/pg17-cutover.md with the rollback step: keep the 15 primary read-only for 24 hours so we can point back at it."}]}}
