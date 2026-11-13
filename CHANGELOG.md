@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.5...v0.2.6) (2026-11-13)
+
+
+### Documentation
+
+* add a readme hero, a keyword-search screenshot and a social preview, generated from invented sessions ([#16](https://github.com/alex-yanchenko/ccsearch/issues/16)) ([15e2326](https://github.com/alex-yanchenko/ccsearch/commit/15e232697e0ec235321aa8ce25dfef24358f07ee))
+
 ## [0.2.5](https://github.com/alex-yanchenko/ccsearch/compare/v0.2.4...v0.2.5) (2026-07-16)
 
 
